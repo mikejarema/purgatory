@@ -46,7 +46,6 @@ The algorithm attempts to count the minimum number of words making up a string b
 * refactor into modular codebase
 * specs
 * geography-based lookups (eg. find all domains with a city/state/country name)
-* heuristic to reduce word counting effort when the max number of words is known (eg. don't recurse past the second word when a max 2 words are permitted based on the filters)
 * word counting should return the actual segmentation yielding the min number of words
 
 

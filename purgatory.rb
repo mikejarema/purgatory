@@ -1,6 +1,6 @@
 #!/usr/bin/ruby 
 
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 
 require 'rubygems'
 require 'optparse'
@@ -8,8 +8,6 @@ require 'open-uri'
 require 'csv'
 require 'yaml'
 require 'tempfile'
-
-require 'ruby-debug'
 
 $dictionary = {}
 $lookup_cache = {}
@@ -37,11 +35,11 @@ def match?(row, options)
 end
 
 def has_words(domain, min_words, max_words)
-  num_words = min_num_words_from(domain.downcase)
+  num_words = min_num_words_from(domain.downcase, max_words)
   return num_words >= min_words && num_words <= max_words
 end
 
-def min_num_words_from(phrase)
+def min_num_words_from(phrase, max_words = Infinity, recursion_depth = 1)
   if $dictionary.has_key?(phrase)
     return 1
 
@@ -51,15 +49,22 @@ def min_num_words_from(phrase)
   elsif phrase.length <= 1
     return Infinity
 
-  else
+  elsif recursion_depth < max_words
     num_words = Infinity
     
     (phrase.length - 2).downto(0) do |i|
-      num_words_i = min_num_words_from(phrase[0..i]) + min_num_words_from(phrase[i+1..-1])
+      num_words_i = 
+        min_num_words_from(phrase[0..i],    max_words, recursion_depth + 1) + 
+        min_num_words_from(phrase[i+1..-1], max_words, recursion_depth + 1)
       num_words = num_words_i if num_words_i < num_words
     end
     
-    $lookup_cache[phrase] = num_words
+    $lookup_cache[phrase] = num_words if num_words < Infinity
+    return num_words
+
+  else
+    return Infinity
+
   end
 end
 
@@ -170,3 +175,4 @@ def should_refresh_list?
 end
 
 main
+
