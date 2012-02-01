@@ -1,6 +1,6 @@
 #!/usr/bin/ruby 
 
-VERSION = 0.1
+VERSION = "0.1.1"
 
 require 'rubygems'
 require 'optparse'
@@ -84,11 +84,11 @@ def main
     :dictionary => "2+2lemma.txt",
     :min_words => nil,
     :max_words => nil,
-    :refresh => should_refresh,
+    :refresh => should_refresh_list?,
   }
 
   OptionParser.new do |opts|
-    opts.banner = "Usage: search-domains.rb [options]"
+    opts.banner = "Usage: purgatory.rb [options]"
 
     opts.on("-x", "--ext com,net,org", Array, "Desired extensions") do |o|
       options[:extension] = o
@@ -132,7 +132,7 @@ def main
       options[:refresh] = o
     end
     opts.on("-v", "--version", "Shows version number") do |o|
-      STDERR.puts "Purgatory v#{VERSION}\nCopyright (c) 2012 Mike Jarema"
+      STDERR.puts "Purgatory v#{VERSION} - Copyright (c) 2012 Mike Jarema"
       exit
     end
   end.parse!
@@ -164,7 +164,7 @@ def refresh_list
   STDERR.puts " done."
 end
 
-def should_refresh
+def should_refresh_list?
   !File.exist?("PoolDeletingDomainsList.txt") ||
   File.mtime("PoolDeletingDomainsList.txt") < Time.now - 3600 # older than 1 hour
 end
