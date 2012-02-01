@@ -7,7 +7,7 @@ Purgatory is a ruby-based command line script to mine expiring domain names base
 
 Purgatory pulls a list of expiring domains from pool.com, and uses a simple set of rules to filter out domains.  In aggregate these filter rules are quite powerful.  For example, its quite easy to lookup all .com domains consisting of one dictionary word.  Or to find all domains containing "deal" and being less than 8 characters.  And so on.
 
-I've used it successfully to identify some solid domain names, and registered them at cost after the daily domain drop (eg. dealreel.com, namevine.com, producteer.com).
+I've used it successfully to identify some solid domain names, and registered them at cost after the daily domain drop.
 
 
 ## Usage
