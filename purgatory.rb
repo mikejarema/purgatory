@@ -64,12 +64,13 @@ def min_num_words_from(phrase)
 end
 
 def load_dictionary(file)
-  STDERR.puts "Loading dictionary for word count restrictions..."
+  STDERR.print "Loading dictionary for word count restrictions..."
   File.open(file).each do |line|
     line.gsub("->", "").gsub(/\[.*?\]/, "").split(/[ \t,]/).select{|i| i.chomp != ""}.each do |word|
       $dictionary[word.chomp] = true
     end
   end
+  STDERR.puts " done."
 end
 
 def main
@@ -154,12 +155,13 @@ end
 
 def refresh_list
   # Assumes expiring domain list is found in PoolDeletingDomainsList.txt
-  STDERR.puts "Downloading expiring domain list from pool.com..."
+  STDERR.print "Downloading expiring domain list from pool.com..."
   temp_zip = Time.now.to_i.to_s + "_" + rand(Time.now.to_i).to_s + ".zip"
   `curl "http://www.pool.com/Downloads/PoolDeletingDomainsList.zip" > #{temp_zip} 2> /dev/null`
   `unzip -o #{temp_zip}`
   `rm #{temp_zip}`
   `touch PoolDeletingDomainsList.txt`
+  STDERR.puts " done."
 end
 
 def should_refresh
