@@ -1,11 +1,11 @@
 # Purgatory
 
-Purgatory is a ruby-based command line script to mine expiring domain names based on keyword, length, extension, word length, geography (TODO), etc.
+Purgatory is a ruby-based command line script to mine expiring domain names based on keyword, character length, word length, extension, geography (TODO), etc.
 
 
 ## Details
 
-Purgatory pulls the expiring domain list from pool.com, and uses a simple set of rules to filter out domains.  In aggregate these filter rules are quite powerful.  For instance, its quite simple to lookup all .com domains consisting of one dictionary word.  Or to find all domains containing "deal" and being less than 8 characters.  And so on.
+Purgatory pulls a list of expiring domains from pool.com, and uses a simple set of rules to filter out domains.  In aggregate these filter rules are quite powerful.  For example, its quite easy to lookup all .com domains consisting of one dictionary word.  Or to find all domains containing "deal" and being less than 8 characters.  And so on.
 
 I've used it successfully to identify some solid domain names, and registered them at cost after the daily domain drop (eg. dealreel.com, namevine.com, producteer.com).
 
@@ -36,9 +36,9 @@ Run ``purgatory.rb --help`` for all parameters.
 
 ## Notes on Word Counting
 
-Purgatory comes bundled with the 12dicts lemmatized wordlist (http://wordlist.sourceforge.net/12dicts-readme-r5.html).  This gives a broad set of base words, pluralizations, inflections, etc.  This dictionary is used for "word counting".
+Purgatory comes bundled with the [12dicts lemmatized wordlist](http://wordlist.sourceforge.net/12dicts-readme-r5.html).  This gives a broad set of base words, pluralizations, inflections, etc.  This dictionary is used for "word counting".
 
-The algorithm attempts to count the minimum number of words making up a string by iterating over all possible segmentations of the string (eg. "ilike" -> "i,like", "il,ike", "ili,ke", "ilik,e"), recursing where 
+The algorithm attempts to count the minimum number of words making up a string by iterating over all possible segmentations of the string (eg. "ilike" -> "i,like", "il,ike", "ili,ke", "ilik,e"), recursing where a segmentation does not consist of a dictionary word, and each stage of recursion returning the minimum word length of a particular segment.
 
 
 ## Roadmap
@@ -47,9 +47,9 @@ The algorithm attempts to count the minimum number of words making up a string b
 * specs
 * geography-based lookups (eg. find all domains with a city/state/country name)
 * heuristic to reduce word counting effort when the max number of words is known (eg. don't recurse past the second word when a max 2 words are permitted based on the filters)
-* word counting should return the segmentation yielding the min number of words
+* word counting should return the actual segmentation yielding the min number of words
 
 
 # License
 
-The MIT License - Copyright (c) 2012 Mike Jarema
+The MIT License - Copyright (c) 2012 [Mike Jarema](http://mikejarema.com)
