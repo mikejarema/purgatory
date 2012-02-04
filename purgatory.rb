@@ -1,6 +1,6 @@
 #!/usr/bin/ruby 
 
-VERSION = "0.1.2"
+VERSION = "0.1.3"
 
 require 'rubygems'
 require 'optparse'
@@ -90,6 +90,7 @@ def main
     :min_words => nil,
     :max_words => nil,
     :refresh => should_refresh_list?,
+    :date => false,
   }
 
   OptionParser.new do |opts|
@@ -140,6 +141,9 @@ def main
       STDERR.puts "Purgatory v#{VERSION} - Copyright (c) 2012 Mike Jarema"
       exit
     end
+    opts.on("--[no-]date", "Shows the drop date of matching domains") do |o|
+      options[:date] = o
+    end
   end.parse!
 
   refresh_list if options[:refresh]
@@ -152,7 +156,7 @@ def main
   Dir.open(dir).each do |file|
     if file =~ /pool.*\.txt/i
       CSV.foreach("#{dir}/#{file}") do |row|
-        puts row[0] if match?(row, options)
+        puts row[0] + (options[:date] ? "\t(#{row[1]})" : "") if match?(row, options)
       end
     end
   end
