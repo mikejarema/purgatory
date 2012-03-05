@@ -52,3 +52,5 @@ The algorithm attempts to count the minimum number of words making up a string b
 # License
 
 The MIT License - Copyright (c) 2012 [Mike Jarema](http://mikejarema.com)
+
+[Purgatory](https://github.com/mikejarema/purgatory) is one of my open-sourced [Rapid Product Prototyping Tools](http://producteer.com)
