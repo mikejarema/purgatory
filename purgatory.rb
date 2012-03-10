@@ -8,7 +8,6 @@ require 'open-uri'
 require 'csv'
 require 'yaml'
 require 'tempfile'
-require 'ruby-debug'
 
 $dictionary = {}
 $lookup_cache = {}
