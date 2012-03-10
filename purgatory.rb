@@ -1,6 +1,6 @@
 #!/usr/bin/ruby 
 
-VERSION = "0.1.3"
+PURGATORY_VERSION = "0.1.4"
 
 require 'rubygems'
 require 'optparse'
@@ -8,6 +8,7 @@ require 'open-uri'
 require 'csv'
 require 'yaml'
 require 'tempfile'
+require 'ruby-debug'
 
 $dictionary = {}
 $lookup_cache = {}
@@ -68,12 +69,19 @@ def min_num_words_from(phrase, max_words = Infinity, recursion_depth = 1)
   end
 end
 
-def load_dictionary(file)
+def load_dictionary(file, additional_words = nil)
   STDERR.print "Loading dictionary for word count restrictions..."
+  
+  # Load dictionary contents from file
   File.open(file).each do |line|
     line.gsub("->", "").gsub(/\[.*?\]/, "").split(/[ \t,]/).select{|i| i.chomp != ""}.each do |word|
       $dictionary[word.chomp] = true
     end
+  end
+
+  # Add additional words from the command line
+  [additional_words].flatten.compact.each do |word|
+    $dictionary[word.downcase.chomp] = true
   end
   STDERR.puts " done."
 end
@@ -96,6 +104,12 @@ def main
   OptionParser.new do |opts|
     opts.banner = "Usage: purgatory.rb [options]"
 
+    # Defaults
+    options[:nums] =    false
+    options[:hyphens] = false
+    options[:extension] = ["com"]
+
+    # Parameter Processing
     opts.on("-x", "--ext com,net,org", Array, "Desired extensions") do |o|
       options[:extension] = o
     end
@@ -138,18 +152,21 @@ def main
       options[:refresh] = o
     end
     opts.on("-v", "--version", "Shows version number") do |o|
-      STDERR.puts "Purgatory v#{VERSION} - Copyright (c) 2012 Mike Jarema"
+      STDERR.puts "Purgatory v#{PURGATORY_VERSION} - Copyright (c) 2012 Mike Jarema"
       exit
     end
     opts.on("--[no-]date", "Shows the drop date of matching domains") do |o|
       options[:date] = o
+    end
+    opts.on("--add-words example,words", Array, "Treats the supplied words as dictionary words for the purposes of the current lookup") do |o|
+      options[:additional_words] = o
     end
   end.parse!
 
   refresh_list if options[:refresh]
     
   if options[:min_words] && options[:max_words]
-    load_dictionary(options[:dictionary])
+    load_dictionary(options[:dictionary], options[:additional_words])
   end
   
   dir = File.dirname(__FILE__)
