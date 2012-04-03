@@ -29,12 +29,13 @@ def match?(row, options)
   match = false if match && options[:format] && domain !~ options[:format]
   match = false if match && options[:start] && domain !~ /^#{options[:start]}/
   match = false if match && options[:end] && domain !~ /#{options[:end]}$/
-  match = false if match && options[:min_words] && options[:max_words] && !has_words(domain, options[:min_words], options[:max_words])
+  match = false if match && !options[:word_lengths].empty? && !has_word_lengths?(domain, options[:word_lengths])
+  match = false if match && options[:min_words] && options[:max_words] && !has_words?(domain, options[:min_words], options[:max_words])
     
   match
 end
 
-def has_words(domain, min_words, max_words)
+def has_words?(domain, min_words, max_words)
   num_words = min_num_words_from(domain.downcase, max_words)
   return num_words >= min_words && num_words <= max_words
 end
@@ -98,14 +99,16 @@ def main
     :max_words => nil,
     :refresh => should_refresh_list?,
     :date => false,
+    :word_lengths => [],
   }
+  dictionary_required = false
 
   OptionParser.new do |opts|
     opts.banner = "Usage: purgatory.rb [options]"
 
     # Defaults
-    options[:nums] =    false
-    options[:hyphens] = false
+    options[:nums] =      false
+    options[:hyphens] =   false
     options[:extension] = ["com"]
 
     # Parameter Processing
@@ -146,6 +149,7 @@ def main
       max_len_match = /[0-9]+/.match(o[1])
       options[:max_words] = max_len_match ? max_len_match[0].to_i : Infinity
       options[:max_words] = options[:min_words] if o.size == 1
+      dictionary_required = true
     end
     opts.on("--[no-]fetch", "Forces the script to refresh the working list of expiring domains") do |o|
       options[:refresh] = o
@@ -160,11 +164,15 @@ def main
     opts.on("--add-words example,words", Array, "Treats the supplied words as dictionary words for the purposes of the current lookup") do |o|
       options[:additional_words] = o
     end
+    opts.on("--word-lengths 3,3", Array, "Word lengths to match, eg. 3,3 would only match 6 char domains consisting of two 3-letter words") do |o|
+      options[:word_lengths] = o.map{|i| i.to_i}
+      dictionary_required = true
+    end
   end.parse!
 
   refresh_list if options[:refresh]
     
-  if options[:min_words] && options[:max_words]
+  if dictionary_required
     load_dictionary(options[:dictionary], options[:additional_words])
   end
   
@@ -192,6 +200,26 @@ end
 def should_refresh_list?
   !File.exist?("PoolDeletingDomainsList.txt") ||
   File.mtime("PoolDeletingDomainsList.txt") < Time.now - 3600 # older than 1 hour
+end
+
+def has_word_lengths?(domain, word_lengths)
+  required_length = 0; word_lengths.map{|i| required_length += i}
+
+  has_word_lengths = domain.length == required_length
+
+  i = 0
+
+  while has_word_lengths && domain.length > 0
+    i_length = word_lengths[i]
+    current_word, domain = domain[0..i_length-1], domain[i_length..-1]
+
+    has_word_lengths &&= $dictionary[current_word]
+    break if !has_word_lengths
+
+    i += 1
+  end
+
+  has_word_lengths
 end
 
 main

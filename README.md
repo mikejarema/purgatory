@@ -14,9 +14,9 @@ I've used it successfully to identify some solid domain names, and registered th
 
 Simple command line usage as follows.
 
-All .com domains consisting of a single dictionary word:
+All .com domains (default) consisting of a single dictionary word:
 
-``purgatory.rb -x com -w 1``
+``purgatory.rb -w 1``
 
 All .net domains less than or equal to 5 characters in length:
 
@@ -25,6 +25,10 @@ All .net domains less than or equal to 5 characters in length:
 All domains which follow a consonant-vowel-vowel-consonant-vowel pattern ending in "o":
 
 ``purgatory.rb -f cvvcv -e o``
+
+All domains consisting of two dictionary words, the first being 5 chars, the second being 3 chars:
+
+``purgatory.rb --word-lengths 5,3``
 
 Etc.
 
