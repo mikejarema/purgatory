@@ -30,6 +30,14 @@ All domains consisting of two dictionary words, the first being 5 chars, the sec
 
 ``purgatory.rb --word-lengths 5,3``
 
+All single word domains suffixed with -ly:
+
+``purgatory.rb --suffix ly``
+
+All single word domains prefixed with my-:
+
+``purgatory.rb --prefix my``
+
 Etc.
 
 
