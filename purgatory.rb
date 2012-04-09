@@ -29,7 +29,7 @@ def match?(row, options)
   match = false if match && options[:format] && domain !~ options[:format]
   match = false if match && options[:start] && domain !~ /^#{options[:start]}/
   match = false if match && options[:end] && domain !~ /#{options[:end]}$/
-  match = false if match && !options[:word_lengths].empty? && !has_word_lengths?(domain, options[:word_lengths])
+  match = false if match && !options[:word_lengths].empty? && !has_word_lengths?(domain, options[:word_lengths], options[:has_variable_word_length], options[:required_length])
   match = false if match && options[:min_words] && options[:max_words] && !has_words?(domain, options[:min_words], options[:max_words])
     
   match
@@ -100,6 +100,9 @@ def main
     :refresh => should_refresh_list?,
     :date => false,
     :word_lengths => [],
+    :has_variable_word_length => false,
+    :required_length => 0,
+    :additional_words => [],
   }
   dictionary_required = false
 
@@ -164,8 +167,51 @@ def main
     opts.on("--add-words example,words", Array, "Treats the supplied words as dictionary words for the purposes of the current lookup") do |o|
       options[:additional_words] = o
     end
-    opts.on("--word-lengths 3,3", Array, "Word lengths to match, eg. 3,3 would only match 6 char domains consisting of two 3-letter words") do |o|
-      options[:word_lengths] = o.map{|i| i.to_i}
+    opts.on("--word-lengths 3,3", Array, "Word lengths to match, eg. 3,3 would only match 6 char domains consisting of two 3-letter words. Permits one optional * denoting a variable length word.") do |o|
+      options[:word_lengths] = o.map{|i| i == "*" ? :variable : i.to_i}
+      dictionary_required = true
+      options[:has_variable_word_length] = options[:word_lengths].include?(:variable)
+
+      # Determine the exact or minimum total domain length required to match
+      # word length specification
+      options[:required_length] = 0
+      options[:word_lengths].map do |i| 
+        if i.is_a?(Numeric)
+          options[:required_length] += i
+        else
+          # Don't count length requirement for variable length specifier
+        end
+      end
+
+      if options[:word_lengths].find_all{|i| i == :variable}.length > 1
+        STDERR.puts "More than one variable word length specifiers used on --word-lengths" 
+        exit
+      end
+    end
+    opts.on("--prefix my", "Searches for two word domains with the specified prefix, overrides --word-lengths, -w and -s parameters") do |o|
+      options[:word_lengths] = [o.length, :variable]
+      options[:has_variable_word_length] = true
+      options[:required_length] = o.length
+
+      options[:start] = o
+
+      options[:min_words] = options[:max_words] = nil
+
+      options[:additional_words] << o
+
+      dictionary_required = true
+    end
+    opts.on("--suffix now", "Searches for two word domains with the specified suffix, overrides --word-lengths, -w and -e parameters") do |o|
+      options[:word_lengths] = [:variable, o.length]
+      options[:has_variable_word_length] = true
+      options[:required_length] = o.length
+
+      options[:end] = o
+
+      options[:min_words] = options[:max_words] = nil
+
+      options[:additional_words] << o
+
       dictionary_required = true
     end
   end.parse!
@@ -202,15 +248,21 @@ def should_refresh_list?
   File.mtime("PoolDeletingDomainsList.txt") < Time.now - 3600 # older than 1 hour
 end
 
-def has_word_lengths?(domain, word_lengths)
-  required_length = 0; word_lengths.map{|i| required_length += i}
+def has_word_lengths?(domain, word_lengths, has_variable_word_length, required_length)
+  # Exit early if the length specification is unmet
+  if !has_variable_word_length && required_length != domain.length ||
+      has_variable_word_length && required_length >= domain.length
+    return false
+  end
 
-  has_word_lengths = domain.length == required_length
+  variable_length = domain.length - required_length
+  has_word_lengths = true
 
   i = 0
 
   while has_word_lengths && domain.length > 0
-    i_length = word_lengths[i]
+    i_length = word_lengths[i].is_a?(Numeric) ? word_lengths[i] : variable_length
+
     current_word, domain = domain[0..i_length-1], domain[i_length..-1]
 
     has_word_lengths &&= $dictionary[current_word]
