@@ -13,11 +13,8 @@ $dictionary = {}
 $lookup_cache = {}
 Infinity = 1.0 / 0
 
-def match?(row, options)
-  full_domain = row[0]
+def match?(full_domain, date, options)
   domain, ext = full_domain.split(/\./)
-  date = row[1]
-  type = row[2]
   match = true
   
   match = false if match && !options[:extension].empty? && !options[:extension].include?(ext)
@@ -225,10 +222,18 @@ def main
   dir = File.dirname(__FILE__)
   Dir.open(dir).each do |file|
     if file =~ /pool.*\.txt/i
-      CSV.foreach("#{dir}/#{file}") do |row|
-        puts row[0] + (options[:date] ? "\t(#{row[1]})" : "") if match?(row, options)
+      @domains = {}.tap do |a|
+        CSV.foreach("#{dir}/#{file}") do |row|
+          a[row[0]] = row[1]
+        end
       end
     end
+  end
+
+
+  sorted_domains = @domains.sort_by{|domain, date| [domain.length, domain] }
+  sorted_domains.each do |domain, date|
+    puts domain + (options[:date] ? "\t(#{date})" : "") if match?(domain, date, options)
   end
 end
 
